@@ -13,6 +13,7 @@ class Order(models.Model):
         on_delete=models.CASCADE)
     status=models.CharField(max_length=20,choices=STATUS_CHOICES,default='CREATED')
     created_at =models.DateTimeField(auto_now_add=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"Order {self.id}"
@@ -23,3 +24,6 @@ class OrderItem(models.Model):
     Order = models.ForeignKey(Order, related_name='items',on_delete=models.CASCADE)
     Price= models.ForeignKey(product,on_delete=models.CASCADE)
     Qty = models.PositiveIntegerField()
+
+
+

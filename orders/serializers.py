@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from models import OrderItem,Order
+from django.db import transaction
 from products.models import product
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -17,16 +18,25 @@ class Order(serializers.ModelSerializer):
     def create(self, validated_data):
         items_data = validated_data.pop('items')
         user = self.context['request'].user
-        order = order.objects.create(user=user)
+        with transaction.atomic():
+            order = order.objects.create(user=user , total_amount=0)
+            for items in items_data:
+                product = items['product']
+                Qty = items['Qty']
+        
+                if product.stock_quandity < items:
+                    raise serializers.ValidationError(f"insufficeient stock for {product.name}")
+                product.stock_quandity-=Qty
+                product.save()
 
-        for items in items_data:
-            product = items['product']
-            Qty = items['Qty']
-        
-            if product.stock_quandity < items:
-                raise serializers.ValidationError(f"insufficeient stock for {product.name}")
-            product.stock_quandity-=Qty
-            product.save()
-        
-        
-        return Order
+
+                OrderItem.objects.create(
+                    Order=Order,
+                    product = product,
+                    Qty =Qty,
+                    price = product.price
+                    )
+                Total +=product.price * Qty
+            Order.total_amount= Total
+            Order.save()
+        return order
