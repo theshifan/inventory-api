@@ -5,6 +5,10 @@ from products.models import Product
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product_id = serializers.PrimaryKeyRelatedField(
+    queryset=Product.objects.all(),
+    source="product"
+    )
     product_name = serializers.ReadOnlyField(source="product.name")
     product_sku = serializers.ReadOnlyField(source="product.sku")
     price = serializers.ReadOnlyField()
@@ -12,7 +16,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = [
-            "product",
+            "product_id",
             "product_name",
             "product_sku",
             "qty",
@@ -48,9 +52,7 @@ class OrderSerializer(serializers.ModelSerializer):
             total = 0
 
             for item in items_data:
-                product = Product.objects.select_for_update().get(
-                    id=item["product"].id
-                )
+                product = item["product"]
                 qty = item["qty"]
 
                 if qty <= 0:
@@ -71,7 +73,7 @@ class OrderSerializer(serializers.ModelSerializer):
                     product=product,
                     qty=qty,
                     price=product.price,
-                )
+                ) 
 
                 total += product.price * qty
 

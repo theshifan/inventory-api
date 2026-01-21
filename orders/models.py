@@ -17,6 +17,9 @@ class Order(models.Model):
     created_at =models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+    def __str__(self):
+     return f"Order #{self.order_id} by {self.user.username}"
+
 
     def save(self, *args,**kwargs):
         if not self.order_id:
